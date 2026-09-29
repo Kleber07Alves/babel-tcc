@@ -2,7 +2,8 @@
 
 ## Correcao
 - [ ] Funcao de normalizacao criada, normalizando **apenas** a letra do drive
-- [ ] Funcao de comparacao de caminhos usada nos 5 pontos listados na especificacao
+- [ ] Funcao de comparacao usada nos 12 pontos listados na especificacao (4 comparacoes de URI
+      e 8 chaves de mapa)
 - [ ] `closeTab` e `isAnyTranslatedTabOpenForPath` passam a comparar da mesma forma
 - [ ] Nenhuma comparacao de caminho sensivel a caixa sobrou no `src/`
       (`grep -rn "uri.path ===\|uri.toString() ===" src/` volta so os usos ja normalizados)
@@ -13,7 +14,8 @@
 - [ ] Regressao: `isAnyTranslatedTabOpenForPath` encontra a aba quando ela esta em `/C:/` e a busca
       vem em `/c:/`
 - [ ] Regressao: `closeTab` fecha a aba com as duas grafias
-- [ ] Suite verde (`npx vitest run --no-file-parallelism`)
+- [ ] Suite verde (`npx vitest run --no-file-parallelism`) - baseline 207 nesta branch, que sai do
+      `main` e portanto nao tem o trabalho da tarefa113
 - [ ] `npm run lint` limpo e `npm run build` passando
 
 ## Validacao manual (F5)

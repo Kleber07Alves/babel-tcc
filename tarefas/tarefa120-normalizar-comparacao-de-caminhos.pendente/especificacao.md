@@ -59,19 +59,30 @@ a normalizacao vira no-op — e no Windows `C:` e `c:` sao sempre o mesmo volume
 - Modulo novo com a funcao de normalizacao e a de comparacao (nome e local a confirmar na
   implementacao; sugestao: `src/services/uriPaths.ts`, seguindo o precedente de `isTranslatedScheme`,
   que ja e funcao livre exportada e usada por varios modulos).
-- Trocar as **5 comparacoes sensiveis a caixa** por essa funcao:
+- Trocar as comparacoes sensiveis a caixa por essa funcao. Sao **12 pontos**, em dois grupos.
 
-  | Arquivo | Linha | Comparacao | Consequencia da falha |
+  **Comparacoes entre duas URIs** (onde duas grafias do mesmo arquivo se encontram):
+
+  | Arquivo | Comparacao | Consequencia da falha |
+  |---|---|---|
+  | `autoTranslateManager.ts` | `tab.input.uri.path === path` (`isAnyTranslatedTabOpenForPath`) | **provado**: `showOriginal` e desfeito |
+  | `autoTranslateManager.ts` | `tab.input.uri.toString() === uriString` (`closeTab`) | aba nao e fechada, sobra aba duplicada |
+  | `autoTranslateManager.ts` | `d.uri.toString() === uri.toString()` (`reloadTranslatedView`) | troca de idioma nao recarrega a visao — o mecanismo do DT-011 |
+  | `translatedContentProvider.ts` | `doc.uri.path === originalPath` (`invalidatePath`) | evento de mudanca nao dispara para a visao aberta |
+
+  **Chaves de mapa montadas a partir do caminho.** Este grupo nao apareceu no `grep` inicial e so
+  ficou visivel lendo o provider inteiro. Tres desses mapas sao **gravados por uma origem e lidos
+  por outra**, que e exatamente onde a caixa diverge:
+
+  | Mapa | Gravado em | Lido em | Consequencia da falha |
   |---|---|---|---|
-  | `providers/autoTranslateManager.ts` | 66 | `tab.input.uri.path === path` | **provado**: `showOriginal` e desfeito |
-  | `providers/autoTranslateManager.ts` | 437 | `tab.input.uri.toString() === uriString` (`closeTab`) | aba nao e fechada, sobra aba duplicada |
-  | `providers/autoTranslateManager.ts` | 378 | `d.uri.toString() === uri.toString()` (`reloadTranslatedView`) | troca de idioma nao recarrega a visao — o mecanismo do DT-011 |
-  | `providers/translatedContentProvider.ts` | 257 | `doc.uri.path === originalPath` (`invalidatePath`) | evento de mudanca nao dispara para a visao aberta |
-  | `providers/translatedContentProvider.ts` | 250 | `key.startsWith(originalPath + '::')` (`invalidatePath`) | cache velho nao e limpo |
+  | `mtimeMap` | `invalidatePath`, com a URI de `workspace.textDocuments` | `stat()`, com a URI da chamada | `stat` devolve o mtime antigo e o editor nao recarrega (DT-011) |
+  | `recentWrites` | `markSelfWrite`, no save | `isRecentSelfWrite`, pelo **file-watcher** do `extension.ts` | a propria escrita nao e suprimida e dispara invalidacao espuria |
+  | `cache` | `buildCacheKey`, da URI traduzida | invalidado por prefixo em `invalidatePath`, com o caminho do file-watcher | cache velho nao e limpo |
+  | `displayLanguages` | `readFile` | `displayLanguageFor` | idioma errado na traducao reversa do save |
+  | `renderedContent` | `readFile` e `doWriteFile` | `doWriteFile` | baseline vazio no merge de 3 vias |
 
-  Apenas a primeira esta provada. As outras quatro sao a mesma classe de defeito e falham do mesmo
-  jeito — devem ser corrigidas juntas, senao a correcao fica parcial e o proximo sintoma reaparece
-  em outro lugar.
+  Corrigir so o primeiro grupo deixaria metade do defeito de pe, inclusive no mecanismo do DT-011.
 
 - Testes unitarios da funcao de normalizacao (drive maiusculo, drive minusculo, caminho sem drive,
   caminho ja normalizado).
