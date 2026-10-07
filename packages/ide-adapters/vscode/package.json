@@ -141,35 +141,68 @@
         "babel-tcc.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "%config.enabled.description%"
+          "description": "%config.enabled.description%",
+          "order": 1
         },
         "babel-tcc.language": {
           "type": "string",
           "default": "pt-br",
-          "description": "%config.language.description%"
-        },
-        "babel-tcc.translationsPath": {
-          "type": "string",
-          "default": "",
-          "description": "%config.translationsPath.description%"
-        },
-        "babel-tcc.readonly": {
-          "type": "boolean",
-          "default": false,
-          "description": "%config.readonly.description%"
+          "description": "%config.language.description%",
+          "order": 2,
+          "enum": ["pt-br", "pt-br-ascii", "en-us", "es-es", "fr-fr", "de-de", "it-it", "ja-jp-romaji", "zh-cn", "ar-sa"],
+          "enumItemLabels": ["Português (Brasil)", "Português (Brasil, sem acentos)", "English (US)", "Español", "Français", "Deutsch", "Italiano", "日本語 (romaji)", "中文 (简体)", "العربية"],
+          "enumDescriptions": ["%config.language.enum.ptBr%", "%config.language.enum.ptBrAscii%", "%config.language.enum.enUs%", "%config.language.enum.esEs%", "%config.language.enum.frFr%", "%config.language.enum.deDe%", "%config.language.enum.itIt%", "%config.language.enum.jaJpRomaji%", "%config.language.enum.zhCn%", "%config.language.enum.arSa%"]
         },
         "babel-tcc.languageOverrides": {
           "type": "object",
           "default": {},
           "description": "%config.languageOverrides.description%",
+          "order": 3,
           "properties": {
-            "CSharp": { "type": "string", "description": "%config.languageOverrides.csharp.description%" },
-            "Python": { "type": "string", "description": "%config.languageOverrides.python.description%" },
-            "VisuAlg": { "type": "string", "description": "%config.languageOverrides.visualg.description%" },
-            "PortugolStudio": { "type": "string", "description": "%config.languageOverrides.portugolStudio.description%" },
-            "JavaScript": { "type": "string", "description": "%config.languageOverrides.javascript.description%" }
+            "CSharp": {
+              "type": "string",
+              "description": "%config.languageOverrides.csharp.description%",
+              "enum": ["pt-br", "pt-br-ascii", "en-us", "es-es", "fr-fr", "de-de", "it-it", "ja-jp-romaji", "zh-cn", "ar-sa"],
+              "enumItemLabels": ["Português (Brasil)", "Português (Brasil, sem acentos)", "English (US)", "Español", "Français", "Deutsch", "Italiano", "日本語 (romaji)", "中文 (简体)", "العربية"]
+            },
+            "Python": {
+              "type": "string",
+              "description": "%config.languageOverrides.python.description%",
+              "enum": ["pt-br", "pt-br-ascii", "en-us", "es-es", "fr-fr", "de-de", "it-it", "ja-jp-romaji", "zh-cn", "ar-sa"],
+              "enumItemLabels": ["Português (Brasil)", "Português (Brasil, sem acentos)", "English (US)", "Español", "Français", "Deutsch", "Italiano", "日本語 (romaji)", "中文 (简体)", "العربية"]
+            },
+            "VisuAlg": {
+              "type": "string",
+              "description": "%config.languageOverrides.visualg.description%",
+              "enum": ["pt-br", "pt-br-ascii", "en-us", "es-es", "fr-fr", "de-de", "it-it", "ja-jp-romaji", "zh-cn", "ar-sa"],
+              "enumItemLabels": ["Português (Brasil)", "Português (Brasil, sem acentos)", "English (US)", "Español", "Français", "Deutsch", "Italiano", "日本語 (romaji)", "中文 (简体)", "العربية"]
+            },
+            "PortugolStudio": {
+              "type": "string",
+              "description": "%config.languageOverrides.portugolStudio.description%",
+              "enum": ["pt-br", "pt-br-ascii", "en-us", "es-es", "fr-fr", "de-de", "it-it", "ja-jp-romaji", "zh-cn", "ar-sa"],
+              "enumItemLabels": ["Português (Brasil)", "Português (Brasil, sem acentos)", "English (US)", "Español", "Français", "Deutsch", "Italiano", "日本語 (romaji)", "中文 (简体)", "العربية"]
+            },
+            "JavaScript": {
+              "type": "string",
+              "description": "%config.languageOverrides.javascript.description%",
+              "enum": ["pt-br", "pt-br-ascii", "en-us", "es-es", "fr-fr", "de-de", "it-it", "ja-jp-romaji", "zh-cn", "ar-sa"],
+              "enumItemLabels": ["Português (Brasil)", "Português (Brasil, sem acentos)", "English (US)", "Español", "Français", "Deutsch", "Italiano", "日本語 (romaji)", "中文 (简体)", "العربية"]
+            }
           },
           "additionalProperties": false
+        },
+        "babel-tcc.readonly": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.readonly.description%",
+          "order": 4
+        },
+        "babel-tcc.translationsPath": {
+          "type": "string",
+          "default": "",
+          "description": "%config.translationsPath.description%",
+          "order": 5
         }
       }
     },
