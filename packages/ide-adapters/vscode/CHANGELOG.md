@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The target language is now picked from a list, not typed by hand.** Settings shows a dropdown
+  with every language written in its own script — `Português (Brasil)`, `Deutsch`, `日本語 (romaji)`,
+  `العربية` — instead of an empty text box that expected you to already know the code was spelled
+  `ja-jp-romaji`. The same list is offered for the per-language overrides, and the five Babel TCC
+  settings now appear in order of how often they are used rather than alphabetically.
 - Command titles no longer repeat `Babel TCC: `. The prefix now comes from the command category, so
   VS Code still shows "Babel TCC: Open Translated View" in the Command Palette while the context menu
   shows just "Open Translated View", where the prefix was only noise. All 7 interface locales were
