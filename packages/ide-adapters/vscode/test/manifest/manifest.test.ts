@@ -23,6 +23,16 @@ interface ManifestMenuItem {
   group?: string;
 }
 
+interface ManifestConfigProperty {
+  type: string;
+  description: string;
+  order?: number;
+  enum?: string[];
+  enumItemLabels?: string[];
+  enumDescriptions?: string[];
+  properties?: Record<string, ManifestConfigProperty>;
+}
+
 interface ManifestKeybinding {
   command: string;
   key: string;
@@ -264,6 +274,74 @@ describe('manifest contract', () => {
     it('should not bind the same chord to two commands', () => {
       const chords: string[] = manifestKeybindings.map((k: ManifestKeybinding): string => k.key);
       expect(new Set(chords).size).toBe(chords.length);
+    });
+  });
+
+  describe('configuration', () => {
+    const configurationProperties: Record<string, ManifestConfigProperty> =
+      packageJson['contributes']['configuration']['properties'];
+    const languageProperty: ManifestConfigProperty = configurationProperties['babel-tcc.language'];
+
+    it('should offer the target language as a list instead of free text', () => {
+      expect(Array.isArray(languageProperty.enum)).toBe(true);
+      expect(languageProperty.enum!.length).toBeGreaterThan(0);
+    });
+
+    it('should offer exactly the locales that ship with the extension', () => {
+      // The golden rule of the translation repo, extended to the UI layer: add a locale and forget
+      // the manifest, and this breaks. Compared as sets — the manifest order is editorial (the two
+      // Portuguese variants first, for the target audience) and must stay free to change.
+      const shippedLocales: string[] = fs
+        .readdirSync(path.join(EXTENSION_ROOT, 'translations', 'natural-languages'), {
+          withFileTypes: true,
+        })
+        .filter((entry: fs.Dirent): boolean => entry.isDirectory())
+        .map((entry: fs.Dirent): string => entry.name);
+
+      expect([...languageProperty.enum!].sort()).toEqual([...shippedLocales].sort());
+    });
+
+    it('should label and describe every locale it offers', () => {
+      expect(languageProperty.enumItemLabels?.length).toBe(languageProperty.enum!.length);
+      expect(languageProperty.enumDescriptions?.length).toBe(languageProperty.enum!.length);
+    });
+
+    it('should never leave a locale label empty', () => {
+      const emptyLabels: string[] = (languageProperty.enumItemLabels ?? []).filter(
+        (label: string): boolean => label.trim() === ''
+      );
+      expect(emptyLabels).toEqual([]);
+    });
+
+    it('should offer the same locales in every per-language override', () => {
+      const overrideProperties: Record<string, ManifestConfigProperty> =
+        configurationProperties['babel-tcc.languageOverrides'].properties!;
+      for (const [programmingLanguage, override] of Object.entries(overrideProperties)) {
+        expect({ programmingLanguage, locales: override.enum }).toEqual({
+          programmingLanguage,
+          locales: languageProperty.enum,
+        });
+        expect({ programmingLanguage, labels: override.enumItemLabels }).toEqual({
+          programmingLanguage,
+          labels: languageProperty.enumItemLabels,
+        });
+      }
+    });
+
+    it('should order every setting explicitly', () => {
+      const unordered: string[] = Object.entries(configurationProperties)
+        .filter(([, property]: [string, ManifestConfigProperty]): boolean =>
+          typeof property.order !== 'number'
+        )
+        .map(([name]: [string, ManifestConfigProperty]): string => name);
+      expect(unordered).toEqual([]);
+    });
+
+    it('should not give two settings the same position', () => {
+      const positions: number[] = Object.values(configurationProperties).map(
+        (property: ManifestConfigProperty): number => property.order!
+      );
+      expect(new Set(positions).size).toBe(positions.length);
     });
   });
 });
