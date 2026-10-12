@@ -49,6 +49,11 @@ ou devolvendo so os casos cobertos por excecao escrita em docs/padroes-codigo.md
 - [ ] Testes do plugin passam (`./gradlew test`)
 
 ## Tokenizer Python e scripts de build
-- [ ] tokenizer_service.py com anotacoes de tipo nas assinaturas
-- [ ] Tokenizacao Python validada de ponta a ponta (os testes com [RequiresPythonFact])
-- [ ] Scripts de build reindentados para 2 espacos conforme .editorconfig
+- [x] tokenizer_service.py com anotacoes de tipo nas assinaturas
+      (2026-10-12: `grep -cE "def .*->"` devolve 2, de 2 funcoes no arquivo)
+- [x] Tokenizacao Python validada de ponta a ponta (os testes com [RequiresPythonFact])
+      (2026-10-12: `dotnet test --filter "FullyQualifiedName~Python"`, 96 de 96, com
+      Python 3.14 instalado e nenhum teste pulado)
+- [x] Scripts de build reindentados para 2 espacos conforme .editorconfig
+      (2026-10-12: regra `indent` do ESLint sem saida nos dois scripts; antes, 40 erros.
+      `git diff -w` vazio: a mudanca e so de espacos)

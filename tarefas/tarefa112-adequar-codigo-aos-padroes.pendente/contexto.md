@@ -120,6 +120,8 @@ grep -rcE "^(data |open |abstract |sealed |enum )?(class|interface|object) " \
 # Python: anotacoes de tipo na assinatura
 grep -cE "def .*->" packages/core/MultiLingualCode.Core/LanguageAdapters/Python/tokenizer_service.py
 
-# JS: indentacao de 4 espacos
-grep -c "^    [a-zA-Z]" scripts/*.js
+# JS: indentacao fora dos 2 espacos do .editorconfig (usa o ESLint da extensao; exige
+# `npm install` em packages/ide-adapters/vscode). Sem saida e exit 0 = conforme.
+(cd packages/ide-adapters/vscode && npx eslint --no-eslintrc --no-ignore \
+  --parser-options ecmaVersion:2020 --env node --rule '{"indent":["error",2]}' ../../../scripts/*.js)
 ```
