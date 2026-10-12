@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
+import { describeError } from '../services/errorMessage';
 import { CoreBridge } from '../services/coreBridge';
 import { LanguageDetector } from '../services/languageDetector';
 import { ConfigurationService } from '../services/configurationService';
-import { describeError } from '../services/errorMessage';
 
 /** The URI scheme used for editable translated document views. */
 export const TRANSLATED_SCHEME = 'babel-tcc-translated';

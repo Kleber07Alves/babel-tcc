@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
+import { describeError } from '../services/errorMessage';
 import { ConfigurationService } from '../services/configurationService';
 import { LanguageDetector } from '../services/languageDetector';
 import { TranslatedContentProvider, TRANSLATED_SCHEME, READONLY_SCHEME, isTranslatedScheme } from './translatedContentProvider';
 import { SUPPORTED_LANGUAGES } from '../config/languages';
-import { describeError } from '../services/errorMessage';
 
 /** Manages automatic translation of .cs tabs based on the enabled/language configuration. */
 export class AutoTranslateManager implements vscode.Disposable {
