@@ -14,6 +14,7 @@ import { AutoTranslateManager } from './providers/autoTranslateManager';
 import { SemanticKeywordProvider, SEMANTIC_TOKENS_LEGEND } from './providers/semanticKeywordProvider';
 import { buildFileWatcherPattern, SUPPORTED_LANGUAGES } from './config/languages';
 import { COMMANDS } from './config/constants';
+import { describeError } from './services/errorMessage';
 
 const OUTPUT_CHANNEL_NAME = 'Babel TCC';
 
@@ -30,10 +31,12 @@ export function buildScopeItems(activeProgrammingLanguage: string | undefined): 
   ];
   for (const lang of SUPPORTED_LANGUAGES) {
     const isActive: boolean = lang.name === activeProgrammingLanguage;
+    let scopeLabel: string = vscode.l10n.t('$(file-code) {0} only', lang.name);
+    if (isActive) {
+      scopeLabel = vscode.l10n.t('$(file-code) {0} only (active)', lang.name);
+    }
     items.push({
-      label: isActive
-        ? vscode.l10n.t('$(file-code) {0} only (active)', lang.name)
-        : vscode.l10n.t('$(file-code) {0} only', lang.name),
+      label: scopeLabel,
       scope: 'language',
       language: lang.name,
     });
@@ -69,7 +72,7 @@ function cleanMultilingualCache(channel: vscode.OutputChannel): void {
         fs.rmSync(cachePath, { recursive: true, force: true });
         channel.appendLine(`Cleaned .multilingual cache: ${cachePath}`);
       } catch (err: unknown) {
-        const message: string = err instanceof Error ? err.message : String(err);
+        const message: string = describeError(err);
         channel.appendLine(`Failed to clean .multilingual cache: ${message}`);
       }
     }
@@ -194,13 +197,14 @@ export function activate(context: vscode.ExtensionContext): void {
     async (): Promise<void> => {
       const currentEnabled: boolean = configService.isEnabled();
       await configService.setEnabled(!currentEnabled);
-      const status: string = !currentEnabled ? 'enabled' : 'disabled';
+      let status: string = 'disabled';
+      let statusMessage: string = vscode.l10n.t('Babel TCC: Translation disabled.');
+      if (!currentEnabled) {
+        status = 'enabled';
+        statusMessage = vscode.l10n.t('Babel TCC: Translation enabled.');
+      }
       outputChannel.appendLine(`Translation ${status}.`);
-      vscode.window.showInformationMessage(
-        !currentEnabled
-          ? vscode.l10n.t('Babel TCC: Translation enabled.')
-          : vscode.l10n.t('Babel TCC: Translation disabled.')
-      );
+      vscode.window.showInformationMessage(statusMessage);
 
       if (!currentEnabled) {
         translatedContentProvider.invalidateAll();
@@ -219,10 +223,14 @@ export function activate(context: vscode.ExtensionContext): void {
       }
 
       const editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-      const filePath: string = editor ? editor.document.uri.path : '';
-      const activeProgrammingLanguage: string | undefined = filePath
-        ? languageDetector.detectLanguage(filePath)
-        : undefined;
+      let filePath: string = '';
+      if (editor) {
+        filePath = editor.document.uri.path;
+      }
+      let activeProgrammingLanguage: string | undefined = undefined;
+      if (filePath) {
+        activeProgrammingLanguage = languageDetector.detectLanguage(filePath);
+      }
 
       const scopeItems: ScopeItem[] = buildScopeItems(activeProgrammingLanguage);
 
@@ -244,8 +252,10 @@ export function activate(context: vscode.ExtensionContext): void {
       // effect, so a save reverse-translates the content correctly. Aborts the change on cancel.
       // Scope the prompt to the affected language: a per-language change only concerns that language's
       // views, while a global change concerns all of them.
-      const affectedLanguage: string | undefined =
-        scopeChoice.scope === 'language' ? scopeChoice.language : undefined;
+      let affectedLanguage: string | undefined = undefined;
+      if (scopeChoice.scope === 'language') {
+        affectedLanguage = scopeChoice.language;
+      }
       if (!(await autoTranslateManager.confirmUnsavedEditsBeforeLanguageChange(affectedLanguage))) {
         return;
       }

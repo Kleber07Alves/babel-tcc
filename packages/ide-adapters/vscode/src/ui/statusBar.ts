@@ -38,11 +38,18 @@ export class StatusBar implements vscode.Disposable {
     const enabled: boolean = this.configService.isEnabled();
 
     const editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-    const filePath: string = editor ? editor.document.uri.path : '';
-    const programmingLanguage: string = filePath ? (this.languageDetector.detectLanguage(filePath) || '') : '';
-    const language: string = programmingLanguage
-      ? this.configService.getLanguageForProgrammingLanguage(programmingLanguage).toUpperCase()
-      : this.configService.getLanguage().toUpperCase();
+    let filePath: string = '';
+    if (editor) {
+      filePath = editor.document.uri.path;
+    }
+    let programmingLanguage: string = '';
+    if (filePath) {
+      programmingLanguage = this.languageDetector.detectLanguage(filePath) || '';
+    }
+    let language: string = this.configService.getLanguage().toUpperCase();
+    if (programmingLanguage) {
+      language = this.configService.getLanguageForProgrammingLanguage(programmingLanguage).toUpperCase();
+    }
 
     if (enabled) {
       this.statusBarItem.text = `$(globe) ${language}`;
