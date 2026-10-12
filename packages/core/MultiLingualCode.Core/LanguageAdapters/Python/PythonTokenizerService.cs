@@ -463,7 +463,12 @@ public class PythonTokenizerService : IDisposable
 
         foreach ((string executable, string args) in candidates)
         {
-            string candidateDescription = !string.IsNullOrEmpty(args) ? $"{executable} {args}" : executable;
+            string candidateDescription = executable;
+            if (!string.IsNullOrEmpty(args))
+            {
+                candidateDescription = $"{executable} {args}";
+            }
+
             triedPaths.Add(candidateDescription);
 
             OperationResultGeneric<Version> versionResult = TryGetPythonVersion(executable, args);
@@ -500,7 +505,11 @@ public class PythonTokenizerService : IDisposable
     {
         try
         {
-            string arguments = !string.IsNullOrEmpty(extraArgs) ? $"{extraArgs} --version" : "--version";
+            string arguments = "--version";
+            if (!string.IsNullOrEmpty(extraArgs))
+            {
+                arguments = $"{extraArgs} --version";
+            }
 
             ProcessStartInfo startInfo = new()
             {
@@ -523,7 +532,12 @@ public class PythonTokenizerService : IDisposable
             process.WaitForExit(5000);
 
             // Python may write version to stdout or stderr depending on version
-            string versionOutput = !string.IsNullOrWhiteSpace(output) ? output : errorOutput;
+            string versionOutput = errorOutput;
+            if (!string.IsNullOrWhiteSpace(output))
+            {
+                versionOutput = output;
+            }
+
             versionOutput = versionOutput.Trim();
 
             // Expected format: "Python 3.x.y"

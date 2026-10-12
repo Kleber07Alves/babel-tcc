@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { window, workspace, __setConfigValue, __clearConfigValues } from '../__mocks__/vscode';
+import { window, workspace, Uri, __setConfigValue, __clearConfigValues } from '../__mocks__/vscode';
 import { StatusBar } from '../../src/ui/statusBar';
 import { ConfigurationService } from '../../src/services/configurationService';
+import { LanguageDetector } from '../../src/services/languageDetector';
 
 describe('StatusBar', () => {
   let configService: ConfigurationService;
@@ -68,6 +69,34 @@ describe('StatusBar', () => {
       __setConfigValue('babel-tcc.language', 'es-es');
       statusBar.update();
       expect(mockStatusBarItem.text).toBe('$(globe) ES-ES');
+    });
+  });
+
+  describe('update with an active file', () => {
+    afterEach(() => {
+      window.activeTextEditor = undefined;
+    });
+
+    it('should show the per-language override of the active file', () => {
+      __setConfigValue('babel-tcc.languageOverrides', { CSharp: 'es-es' });
+      window.activeTextEditor = { document: { uri: Uri.file('/project/Program.cs') } } as any;
+      const detectingStatusBar: StatusBar = new StatusBar(configService, new LanguageDetector());
+
+      detectingStatusBar.update();
+
+      expect(mockStatusBarItem.text).toBe('$(globe) ES-ES');
+      detectingStatusBar.dispose();
+    });
+
+    it('should fall back to the global language for an unsupported active file', () => {
+      __setConfigValue('babel-tcc.languageOverrides', { CSharp: 'es-es' });
+      window.activeTextEditor = { document: { uri: Uri.file('/project/notes.txt') } } as any;
+      const detectingStatusBar: StatusBar = new StatusBar(configService, new LanguageDetector());
+
+      detectingStatusBar.update();
+
+      expect(mockStatusBarItem.text).toBe('$(globe) PT-BR');
+      detectingStatusBar.dispose();
     });
   });
 

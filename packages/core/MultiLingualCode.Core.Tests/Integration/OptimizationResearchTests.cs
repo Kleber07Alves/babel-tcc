@@ -194,7 +194,11 @@ public class OptimizationResearchTests : IDisposable
 
             long fullAvg = fullTimes.Sum() / Runs;
             long incrAvg = incrTimes.Sum() / Runs;
-            string speedup = fullAvg > 0 ? $"{(double)fullAvg / Math.Max(incrAvg, 1):F1}x" : "N/A";
+            string speedup = "N/A";
+            if (fullAvg > 0)
+            {
+                speedup = $"{(double)fullAvg / Math.Max(incrAvg, 1):F1}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {fullAvg}ms | {incrAvg}ms | {speedup} |");
         }
@@ -277,7 +281,11 @@ public class OptimizationResearchTests : IDisposable
 
             long roslynAvg = roslynTimes.Sum() / Runs;
             long scanAvg = scanTimes.Sum() / Runs;
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(scanAvg, 1):F1}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(scanAvg, 1):F1}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {roslynAvg}ms | {scanAvg}ms | {speedup} |");
         }
@@ -518,7 +526,11 @@ public class OptimizationResearchTests : IDisposable
             long firstAvg = firstTimes.Sum() / Runs;
             long noCacheAvg = noCacheTimes.Sum() / Runs;
             long cacheAvg = cacheTimes.Sum() / Runs;
-            string speedup = noCacheAvg > 0 ? $"{(double)noCacheAvg / Math.Max(cacheAvg, 1):F1}x" : "N/A";
+            string speedup = "N/A";
+            if (noCacheAvg > 0)
+            {
+                speedup = $"{(double)noCacheAvg / Math.Max(cacheAvg, 1):F1}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {firstAvg}ms | {noCacheAvg}ms | {cacheAvg}ms | {speedup} |");
         }
@@ -606,31 +618,31 @@ public class OptimizationResearchTests : IDisposable
         string code1 = "public class publicKey {}";
         string result1 = TextScanTranslate(code1, translations);
         bool case1Pass = result1.Contains("publicKey") && result1.Contains("público");
-        results.AppendLine($"- keyword in identifier (publicKey): {(case1Pass ? "PASS" : "FAIL")} — `{result1.Trim()}`");
+        results.AppendLine($"- keyword in identifier (publicKey): {PassLabel(case1Pass)} — `{result1.Trim()}`");
 
         // Edge case 2: keyword inside string
         string code2 = "string s = \"public class\";";
         string result2 = TextScanTranslate(code2, translations);
         bool case2Pass = result2.Contains("\"public class\"");
-        results.AppendLine($"- keyword in string: {(case2Pass ? "PASS" : "FAIL")} — `{result2.Trim()}`");
+        results.AppendLine($"- keyword in string: {PassLabel(case2Pass)} — `{result2.Trim()}`");
 
         // Edge case 3: keyword in comment
         string code3 = "// public class comment\nclass Foo {}";
         string result3 = TextScanTranslate(code3, translations);
         bool case3Pass = result3.Contains("// public class") && result3.Contains("classe Foo");
-        results.AppendLine($"- keyword in comment: {(case3Pass ? "PASS" : "FAIL")} — `{result3.Trim()}`");
+        results.AppendLine($"- keyword in comment: {PassLabel(case3Pass)} — `{result3.Trim()}`");
 
         // Edge case 4: var as standalone keyword
         string code4 = "var x = 1;";
         string result4 = TextScanTranslate(code4, translations);
         bool case4Pass = result4.Contains("var_traduzido");
-        results.AppendLine($"- var standalone: {(case4Pass ? "PASS" : "FAIL")} — `{result4.Trim()}`");
+        results.AppendLine($"- var standalone: {PassLabel(case4Pass)} — `{result4.Trim()}`");
 
         // Edge case 5: var inside variable name
         string code5 = "int variable = 1;";
         string result5 = TextScanTranslate(code5, translations);
         bool case5Pass = !result5.Contains("var_traduzido") && result5.Contains("variable");
-        results.AppendLine($"- var in identifier (variable): {(case5Pass ? "PASS" : "FAIL")} — `{result5.Trim()}`");
+        results.AppendLine($"- var in identifier (variable): {PassLabel(case5Pass)} — `{result5.Trim()}`");
 
         results.AppendLine();
 
@@ -733,7 +745,7 @@ public class OptimizationResearchTests : IDisposable
             bool pass = containsOk && notContainsOk;
 
             if (pass) passed++; else failed++;
-            results.AppendLine($"- {name}: {(pass ? "PASS" : "FAIL")}");
+            results.AppendLine($"- {name}: {PassLabel(pass)}");
             if (!pass)
             {
                 results.AppendLine($"  Input:  `{input.Replace("\n", "\\n")}`");
@@ -901,7 +913,7 @@ public class OptimizationResearchTests : IDisposable
             bool pass = verify(output);
 
             if (pass) passed++; else failed++;
-            results.AppendLine($"- {name}: {(pass ? "PASS" : "FAIL")}");
+            results.AppendLine($"- {name}: {PassLabel(pass)}");
             if (!pass)
             {
                 string detail = $"  FAIL: {name}\n  Input:  `{input.Replace("\n", "\\n")}`\n  Output: `{output.Replace("\n", "\\n")}`";
@@ -930,6 +942,19 @@ public class OptimizationResearchTests : IDisposable
     // =========================================================================
 
     /// <summary>
+    /// Formats a boolean check as the PASS/FAIL label used in the research reports.
+    /// </summary>
+    public static string PassLabel(bool passed)
+    {
+        if (passed)
+        {
+            return "PASS";
+        }
+
+        return "FAIL";
+    }
+
+    /// <summary>
     /// Simulates the hybrid approach: use Text Scan for files without tradu/raw strings,
     /// fall back to Roslyn for files that need AST.
     /// </summary>
@@ -944,7 +969,12 @@ public class OptimizationResearchTests : IDisposable
         if (NeedsRoslyn(code))
         {
             OperationResultGeneric<string> result = await orchestrator.TranslateToNaturalLanguageAsync(code, ".cs", "pt-br");
-            return result.IsSuccess ? result.Value : code;
+            if (result.IsSuccess)
+            {
+                return result.Value;
+            }
+
+            return code;
         }
 
         return TextScanTranslate(code, translationMap);
@@ -1066,7 +1096,12 @@ public class OptimizationResearchTests : IDisposable
 
             long roslynAvg = roslynTimes.Sum() / Runs;
             long hybridAvg = hybridTimes.Sum() / Runs;
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(hybridAvg, 1):F0}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(hybridAvg, 1):F0}x";
+            }
+
             results.AppendLine($"| {methods} | {lines} | {roslynAvg}ms | {hybridAvg}ms | {speedup} |");
         }
 
@@ -1103,7 +1138,12 @@ public class OptimizationResearchTests : IDisposable
 
             long roslynAvg = roslynTimes.Sum() / Runs;
             long hybridAvg = hybridTimes.Sum() / Runs;
-            string speedup = hybridAvg > 0 ? $"{(double)roslynAvg / hybridAvg:F1}x" : "N/A";
+            string speedup = "N/A";
+            if (hybridAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / hybridAvg:F1}x";
+            }
+
             results.AppendLine($"| {methods} | {lines} | {roslynAvg}ms | {hybridAvg}ms | {speedup} |");
         }
 
@@ -1141,7 +1181,12 @@ public class OptimizationResearchTests : IDisposable
 
             long roslynAvg = roslynTimes.Sum() / Runs;
             long hybridAvg = hybridTimes.Sum() / Runs;
-            string speedup = hybridAvg > 0 ? $"{(double)roslynAvg / hybridAvg:F1}x" : "N/A";
+            string speedup = "N/A";
+            if (hybridAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / hybridAvg:F1}x";
+            }
+
             results.AppendLine($"| {methods} | {lines} | {roslynAvg}ms | {hybridAvg}ms | {speedup} |");
         }
 
@@ -1315,7 +1360,11 @@ public class OptimizationResearchTests : IDisposable
             long parseAvg = parseTimes.Sum() / Runs;
             long walkAvg = walkTimes.Sum() / Runs;
             long totalV2 = scanAvg + parseAvg + walkAvg;
-            string speedup = fullAvg > 0 ? $"{(double)fullAvg / Math.Max(totalV2, 1):F1}x" : "N/A";
+            string speedup = "N/A";
+            if (fullAvg > 0)
+            {
+                speedup = $"{(double)fullAvg / Math.Max(totalV2, 1):F1}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {fullAvg}ms | {scanAvg}ms | {parseAvg}ms | {walkAvg}ms | {totalV2}ms | {speedup} |");
         }
@@ -1395,7 +1444,7 @@ public class OptimizationResearchTests : IDisposable
             string output = TextScanTranslate(input, translations);
             bool pass = verify(output);
             if (pass) passed++; else failed++;
-            results.AppendLine($"- {name}: {(pass ? "PASS" : "FAIL")}");
+            results.AppendLine($"- {name}: {PassLabel(pass)}");
             if (!pass)
             {
                 results.AppendLine($"  Input:  `{input.Replace("\n", "\\n")}`");
@@ -1471,7 +1520,11 @@ public class OptimizationResearchTests : IDisposable
 
             long roslynAvg = roslynTimes.Sum() / Runs;
             long scanAvg = scanTimes.Sum() / Runs;
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(scanAvg, 1):F0}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(scanAvg, 1):F0}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {roslynAvg}ms | {scanAvg}ms | {speedup} |");
         }
@@ -1547,7 +1600,12 @@ public class OptimizationResearchTests : IDisposable
             }
             recAvg /= Runs;
 
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(recAvg, 1):F0}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(recAvg, 1):F0}x";
+            }
+
             results.AppendLine($"| Plain | {methods} | {lines} | {roslynAvg}ms | {recAvg}ms | {speedup} |");
         }
 
@@ -1583,7 +1641,12 @@ public class OptimizationResearchTests : IDisposable
             }
             recAvg /= Runs;
 
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(recAvg, 1):F1}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(recAvg, 1):F1}x";
+            }
+
             results.AppendLine($"| With tradu | {methods} | {lines} | {roslynAvg}ms | {recAvg}ms | {speedup} |");
         }
 
@@ -1613,7 +1676,12 @@ public class OptimizationResearchTests : IDisposable
             }
             recAvg /= Runs;
 
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(recAvg, 1):F0}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(recAvg, 1):F0}x";
+            }
+
             results.AppendLine($"| With raw strings | {methods} | {lines} | {roslynAvg}ms | {recAvg}ms | {speedup} |");
         }
 
@@ -1767,7 +1835,12 @@ public class OptimizationResearchTests : IDisposable
                 v2Avg = scanAvg;
             }
 
-            string speedup = roslynAvg > 0 ? $"{(double)roslynAvg / Math.Max(v2Avg, 1):F1}x" : "N/A";
+            string speedup = "N/A";
+            if (roslynAvg > 0)
+            {
+                speedup = $"{(double)roslynAvg / Math.Max(v2Avg, 1):F1}x";
+            }
+
             results.AppendLine($"| {labels[d]} | {roslynAvg}ms | {scanAvg}ms | {v2Avg}ms | {speedup} |");
         }
 
@@ -2013,7 +2086,11 @@ public class OptimizationResearchTests : IDisposable
 
             long plainAvg = plainTimes.Sum() / Runs;
             long traduAvg = traduTimes.Sum() / Runs;
-            string speedup = traduAvg > 0 ? $"{(double)traduAvg / Math.Max(plainAvg, 1):F0}x" : "N/A";
+            string speedup = "N/A";
+            if (traduAvg > 0)
+            {
+                speedup = $"{(double)traduAvg / Math.Max(plainAvg, 1):F0}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {plainAvg}ms | {traduAvg}ms | {speedup} |");
         }
@@ -2129,7 +2206,11 @@ public class OptimizationResearchTests : IDisposable
             long siAvg = scanIsolated.Sum() / Runs;
             long rfAvg = roslynFull.Sum() / Runs;
             long sfAvg = scanFull.Sum() / Runs;
-            string fairSpeedup = rfAvg > 0 ? $"{(double)rfAvg / Math.Max(sfAvg, 1):F1}x" : "N/A";
+            string fairSpeedup = "N/A";
+            if (rfAvg > 0)
+            {
+                fairSpeedup = $"{(double)rfAvg / Math.Max(sfAvg, 1):F1}x";
+            }
 
             results.AppendLine($"| {methods} | {lines} | {riAvg}ms | {siAvg}ms | {rfAvg}ms | {sfAvg}ms | {fairSpeedup} |");
         }

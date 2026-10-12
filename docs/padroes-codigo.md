@@ -29,11 +29,11 @@ cada seção declara as suas.
 ### Conformidade do código existente
 
 Estas regras valem para código novo. Parte do código escrito antes delas ainda
-não é conforme — o plugin IntelliJ, o tokenizer Python e os scripts de build.
+não é conforme, em mais de uma camada do projeto.
 
 A adequação é trabalho próprio, rastreado na tarefa
-`tarefas/tarefa112-adequar-codigo-aos-padroes`, e não é requisito de quem toca
-nesses arquivos por outro motivo.
+`tarefas/tarefa112-adequar-codigo-aos-padroes`, que mantém o inventário por
+camada. Ela não é requisito de quem toca nesses arquivos por outro motivo.
 
 ## C# (.NET 8)
 
