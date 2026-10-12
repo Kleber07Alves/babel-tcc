@@ -12,10 +12,32 @@ import keyword
 import sys
 import token
 import tokenize
+from typing import List, TypedDict
 
 
-def tokenize_source(source):
-    tokens = []
+class TokenRecord(TypedDict):
+    """One token of the source, as sent to the Core in the response."""
+
+    type: int
+    typeName: str
+    string: str
+    startLine: int
+    startCol: int
+    endLine: int
+    endCol: int
+    isKeyword: bool
+
+
+class TokenizeResponse(TypedDict, total=False):
+    """Response envelope of the protocol. `error` is present only when `ok` is false."""
+
+    ok: bool
+    tokens: List[TokenRecord]
+    error: str
+
+
+def tokenize_source(source: str) -> TokenizeResponse:
+    tokens: List[TokenRecord] = []
     try:
         gen = tokenize.generate_tokens(io.StringIO(source).readline)
         for tok in gen:
@@ -38,7 +60,7 @@ def tokenize_source(source):
         return {"ok": False, "error": str(e), "tokens": tokens}
 
 
-def main():
+def main() -> None:
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -55,7 +77,7 @@ def main():
 
         source = request.get("source", "")
         try:
-            result = tokenize_source(source)
+            result: TokenizeResponse = tokenize_source(source)
         except Exception as e:
             result = {"ok": False, "error": f"Unexpected error: {e}", "tokens": []}
 
