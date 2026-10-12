@@ -267,6 +267,10 @@ export const window = {
   },
 };
 
+export const env = {
+  openExternal: vi.fn(),
+};
+
 export const l10n = {
   // Mirrors vscode.l10n.t: returns the source string with {0}/{1}... substituted.
   t: (message: string, ...args: unknown[]): string =>
