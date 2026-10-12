@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { spawn, ChildProcess } from 'child_process';
 import * as readline from 'readline';
 import { CONFIG_SECTION, TRANSLATIONS_REPO_NAME } from '../config/constants';
+import { describeError } from './errorMessage';
 
 const DEFAULT_TIMEOUT_MS = 10000;
 const MAX_CRASHES = 3;
@@ -58,10 +59,10 @@ export class CoreBridge {
       'MultiLingualCode.Core.Host.dll'
     );
     // Pacote self-contained por plataforma: executavel nativo (Host.exe no Windows, Host no Linux/Mac).
-    const exeName: string =
-      process.platform === 'win32'
-        ? 'MultiLingualCode.Core.Host.exe'
-        : 'MultiLingualCode.Core.Host';
+    let exeName: string = 'MultiLingualCode.Core.Host';
+    if (process.platform === 'win32') {
+      exeName = 'MultiLingualCode.Core.Host.exe';
+    }
     this.coreExePath = path.join(context.extensionPath, 'bin', exeName);
     this.projectPath = '';
     this.outputChannel = outputChannel;
@@ -111,7 +112,7 @@ export class CoreBridge {
     try {
       fs.chmodSync(filePath, 0o755);
     } catch (err: unknown) {
-      const message: string = err instanceof Error ? err.message : String(err);
+      const message: string = describeError(err);
       this.outputChannel.appendLine(
         `CoreBridge: could not set executable bit on ${filePath} - ${message}`
       );

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { describeError } from '../services/errorMessage';
 import { CoreBridge } from '../services/coreBridge';
 import { LanguageDetector } from '../services/languageDetector';
 import { ConfigurationService } from '../services/configurationService';
@@ -162,7 +163,7 @@ export class TranslatedContentProvider implements vscode.FileSystemProvider {
       this.outputChannel.appendLine(`TranslatedContentProvider: saved original code to ${originalPath}`);
       vscode.window.showInformationMessage(vscode.l10n.t('Babel TCC: File saved successfully.'));
     } catch (error: unknown) {
-      const message: string = error instanceof Error ? error.message : String(error);
+      const message: string = describeError(error);
       this.outputChannel.appendLine(`TranslatedContentProvider: reverse translation failed - ${message}`);
       vscode.window.showErrorMessage(
         vscode.l10n.t('Babel TCC: Failed to reverse translate. Original file was NOT overwritten.')
@@ -230,7 +231,7 @@ export class TranslatedContentProvider implements vscode.FileSystemProvider {
       );
       return result;
     } catch (error: unknown) {
-      const message: string = error instanceof Error ? error.message : String(error);
+      const message: string = describeError(error);
       this.outputChannel.appendLine(`TranslatedContentProvider: translation failed - ${message}`);
       vscode.window.showWarningMessage(
         vscode.l10n.t('Babel TCC: Translation failed. Showing original code. Check Output panel for details.')

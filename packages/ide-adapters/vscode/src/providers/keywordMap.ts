@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ConfigurationService } from '../services/configurationService';
 import { LanguageDetector } from '../services/languageDetector';
 import { CoreBridge } from '../services/coreBridge';
+import { describeError } from '../services/errorMessage';
 
 /**
  * Loads keyword translation maps from the Core via CoreBridge.
@@ -119,7 +120,7 @@ export class KeywordMapService {
         this.cache.set(cacheKey, map);
         this.outputChannel.appendLine(`KeywordMapService: loaded ${Object.keys(map).length} keywords for ${programmingLanguage}/${language}`);
       } catch (err: unknown) {
-        const message: string = err instanceof Error ? err.message : String(err);
+        const message: string = describeError(err);
         this.outputChannel.appendLine(`KeywordMapService: failed to load keywords for ${programmingLanguage}/${language} - ${message}`);
         vscode.window.showWarningMessage(vscode.l10n.t('Babel TCC: Failed to load translations. Completion and highlighting may not work.'));
       }
@@ -131,7 +132,7 @@ export class KeywordMapService {
           this.categoryCache.set(categoryCacheKey, categories);
           this.outputChannel.appendLine(`KeywordMapService: loaded ${Object.keys(categories).length} categories for ${programmingLanguage}`);
         } catch (err: unknown) {
-          const message: string = err instanceof Error ? err.message : String(err);
+          const message: string = describeError(err);
           this.outputChannel.appendLine(`KeywordMapService: failed to load categories for ${programmingLanguage} - ${message}`);
         }
       }
@@ -144,7 +145,7 @@ export class KeywordMapService {
         this.identifierCache.set(identifierCacheKey, map);
         this.outputChannel.appendLine(`KeywordMapService: loaded ${Object.keys(map).length} identifiers for ${language}`);
       } catch (err: unknown) {
-        const message: string = err instanceof Error ? err.message : String(err);
+        const message: string = describeError(err);
         this.outputChannel.appendLine(`KeywordMapService: failed to load identifiers for ${language} - ${message}`);
         vscode.window.showWarningMessage(vscode.l10n.t('Babel TCC: Failed to load identifier translations. Highlighting may not work.'));
       }
@@ -163,7 +164,7 @@ export class KeywordMapService {
       this.identifierCache.set(identifierCacheKey, map);
       this.outputChannel.appendLine(`KeywordMapService: refreshed ${Object.keys(map).length} identifiers for ${language}`);
     } catch (err: unknown) {
-      const message: string = err instanceof Error ? err.message : String(err);
+      const message: string = describeError(err);
       this.outputChannel.appendLine(`KeywordMapService: failed to refresh identifiers for ${language} - ${message}`);
     }
   }

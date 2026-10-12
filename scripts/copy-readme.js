@@ -13,9 +13,9 @@ const SRC = path.join(REPO_ROOT, 'README.md');
 const DEST = path.resolve(__dirname, '..', 'packages', 'ide-adapters', 'vscode', 'README.md');
 
 if (!fs.existsSync(SRC)) {
-    console.error(`ERROR: README.md not found at ${SRC}`);
-    console.error('The Marketplace listing is rendered from this file; cannot package without it.');
-    process.exit(1);
+  console.error(`ERROR: README.md not found at ${SRC}`);
+  console.error('The Marketplace listing is rendered from this file; cannot package without it.');
+  process.exit(1);
 }
 
 fs.copyFileSync(SRC, DEST);
