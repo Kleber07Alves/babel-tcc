@@ -6,41 +6,50 @@ release 1.1.0 - mas nao ha conflito tecnico: aqueles PRs mexem em `description`/
 e esta tarefa mexe em `commands`/`menus`/`keybindings`.
 
 ## Bloqueia
-- Tarefa 114 (comando "Abrir Exemplo") e 115 (walkthrough): ambas registram comandos novos e
-  dependem do padrao de `category`/`icon` e do teste de contrato do manifesto definidos aqui.
-- Tarefa 118 (auditoria de acessibilidade): audita, entre outras coisas, as superficies criadas aqui.
+- Tarefa 114 (configuracoes navegaveis): a assercao nova dela entra no teste de contrato do manifesto
+  criado aqui.
+- As tarefas seguintes da fase 7 que registram comandos novos (comando "Abrir Exemplo" e
+  walkthrough): dependem do padrao de `category`/`icon` e do teste de contrato definidos aqui.
+- A auditoria de acessibilidade da fase 7: audita, entre outras coisas, as superficies criadas aqui.
 
 ## Arquivos relevantes
-- packages/ide-adapters/vscode/src/ui/contextKeys.ts (novo)
-- packages/ide-adapters/vscode/src/ui/statusBar.ts (modelo de classe com Disposable e subscricoes)
-- packages/ide-adapters/vscode/src/config/constants.ts (COMMANDS, CONFIG_KEYS)
-- packages/ide-adapters/vscode/src/extension.ts (registro em subscriptions)
-- packages/ide-adapters/vscode/src/services/configurationService.ts (onDidChangeConfiguration)
-- packages/ide-adapters/vscode/src/services/languageDetector.ts (isSupported)
-- packages/ide-adapters/vscode/src/providers/translatedContentProvider.ts (isTranslatedScheme,
-  TRANSLATED_SCHEME, READONLY_SCHEME)
 - packages/ide-adapters/vscode/package.json
 - packages/ide-adapters/vscode/package.nls*.json (7 arquivos)
+- packages/ide-adapters/vscode/src/config/constants.ts (COMMANDS, CONFIG_KEYS)
+- packages/ide-adapters/vscode/src/config/languages.ts (SUPPORTED_LANGUAGES - fonte das extensoes da
+  clausula `when`)
+- packages/ide-adapters/vscode/src/providers/translatedContentProvider.ts (TRANSLATED_SCHEME,
+  READONLY_SCHEME)
 - packages/ide-adapters/vscode/test/__mocks__/vscode.ts
 - packages/ide-adapters/vscode/test/config/languages.test.ts (modelo de teste que le o package.json
   do disco - o teste de contrato do manifesto segue esse padrao)
 - docs/decisoes-tecnicas.md (DT-012)
-- guia-ux-acessibilidade-vscode_1.md, secoes 3 (invariantes) e 5.1 (detalhamento desta tarefa)
 
 ## Notas
-- **Invariantes que esta tarefa precisa respeitar** (do guia da etapa): INV-02 (Palette continua
-  canonico), INV-03 (`category` em vez de prefixo no titulo), INV-04 (zero string literal na UI),
-  INV-05 (so codicon como icone), INV-09 (tudo alcancavel por teclado), INV-11 (visibilidade por
-  `when` + context key), INV-14 (chord com prefixo proprio, verificado em ABNT2).
-- `editor/title` recebe **um** botao por vez: "abrir visao traduzida" quando o arquivo e suportado e
-  a visao nao esta aberta, "mostrar original" quando ja se esta na visao traduzida. Dois icones
-  concorrentes na barra do editor sao poluicao.
-- Teclas do chord a evitar por causa do AltGr do ABNT2 (AltGr = Ctrl+Alt no Windows): entre outras
-  `q`, `w`, `e`, `c`, `1`, `2`, `3`, `/`.
-- **Prefixo `ctrl+alt+b` verificado em teclado ABNT2 real (2026-08-16):** nao produz caractere no
-  Bloco de Notas, no Notas Autoadesivas nem no VS Code. Liberado para uso. Apenas o prefixo precisa
-  dessa verificacao - a segunda tecla do chord e pressionada sem modificador, entao nao passa pelo
-  AltGr.
+- **Regras de superficie que esta tarefa precisa respeitar:**
+  - o Command Palette continua sendo a via canonica - menus e atalhos sao atalhos, nunca a unica via;
+    nenhum comando e escondido do Palette;
+  - `category` compoe o prefixo "Babel TCC:"; o `title` nao o repete;
+  - nenhuma string literal na UI: toda string do manifesto vai para os 7 `package.nls*.json`, e toda
+    string de runtime para os 6 `l10n/bundle.l10n.*.json`;
+  - icone em `editor/title` so como codicon (`$(...)`), que se adapta a tema claro, escuro e alto
+    contraste;
+  - tudo alcancavel so pelo teclado;
+  - visibilidade por clausula `when`, nunca por checagem dentro do comando.
+- `editor/title` recebe **um** botao por vez: "abrir visao traduzida" num original suportado,
+  "mostrar original" numa visao traduzida. Dois icones concorrentes na barra do editor sao poluicao.
+- Teclas que o ABNT2 alcanca por AltGr (AltGr = Ctrl+Alt no Windows) e que nao podem entrar num chord:
+  `1 2 3 4 5 6 = [ ] q w e c /` (produzem ¹ ² ³ £ ¢ ¬ § ª º / ? ° ₢).
+- **Prefixo `ctrl+alt+b` (versao inicial, descartada):** verificado em teclado ABNT2 real em
+  2026-08-16, mas e atalho nativo do VS Code ("Toggle Secondary Side Bar"). Ver especificacao, secao
+  "Revisao do PR #185".
+- **Prefixo `ctrl+alt+u` (atual):** escolhido por varredura do keymap padrao do VS Code 1.141 (letras
+  livres em Ctrl+Alt e Cmd+Alt: `a d e h j m n q u x z`), excluindo as alcancadas por AltGr no ABNT2
+  (`q`, `e`) e as que o macOS reserva em Cmd+Opt (`h`, `d`, `m`). Apenas o prefixo precisa da
+  verificacao de AltGr - a segunda tecla do chord e pressionada sem modificador.
+- As clausulas `when` foram validadas contra o parser do proprio VS Code (codigo-fonte da tag 1.141.0)
+  antes da validacao manual: todas sao aceitas, e avaliadas por editor mostram no maximo um botao em
+  `editor/title`.
 - O teste de contrato do manifesto e o item de maior valor desta tarefa: e o analogo do
   `scripts/validate.py` do repo de traducoes aplicado a camada de UI. Manifesto sem validacao
   drifta - foi exatamente assim que a `description` do Marketplace ficou desatualizada por 2 releases.

@@ -14,12 +14,16 @@
 
 ## Testes
 - [x] `manifest.test.ts`: o `enum` de `babel-tcc.language` e exatamente o conjunto de pastas em
-      `translations/natural-languages`
+      `natural-languages`
+- [x] O teste do enum roda no CI, sem skip: le `BABEL_TCC_TRANSLATIONS_PATH`, e o job da extensao faz
+      checkout do repositorio de traducoes
+- [x] Teste de mutacao: com `BABEL_TCC_TRANSLATIONS_PATH` apontando para uma pasta com 1 locale, o
+      teste falha
 - [x] `manifest.test.ts`: `enum`, `enumItemLabels` e `enumDescriptions` tem o mesmo comprimento
 - [x] `manifest.test.ts`: as 5 propriedades de `languageOverrides` usam o mesmo enum da propriedade
       global
 - [x] `manifest.test.ts`: toda propriedade de configuracao tem `order`, e os valores nao se repetem
-- [x] Suite verde (`npx vitest run --no-file-parallelism`) - 251 passam (baseline 244)
+- [x] Suite verde (`npx vitest run --no-file-parallelism`) - 259 passam, junto com a tarefa113
 - [x] `npm run lint` limpo e `npm run build` passando
 
 ## Validacao manual (F5)
@@ -33,3 +37,5 @@
 - [x] Commits em conventional commits com escopo `vscode`
 - [x] Pasta da tarefa renomeada para `.finalizada`
 - [x] `CHANGELOG.md` atualizado
+- [x] DT-013 registrado em `docs/decisoes-tecnicas.md` (lista fechada e o trade-off do fork)
+- [x] `docs/user-guide/configuration.md` descreve `babel-tcc.language` como lista

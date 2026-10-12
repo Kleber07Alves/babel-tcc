@@ -1,4 +1,4 @@
-﻿# Contexto - Tarefa 114
+# Contexto - Tarefa 114
 
 ## Dependencias
 **Tarefa 113.** Duas razoes concretas:
@@ -12,14 +12,15 @@ Por isso esta tarefa sai da branch `feat/ux-descoberta-comandos`, e nao do `main
 as duas no mesmo PR (PR 1 da etapa).
 
 ## Bloqueia
-Nada. As tarefas 115 a 119 nao dependem desta.
+Nada. As tarefas seguintes da fase 7 nao dependem desta.
 
 ## Arquivos relevantes
 - packages/ide-adapters/vscode/package.json (`contributes.configuration.properties`)
 - packages/ide-adapters/vscode/package.nls*.json (7 arquivos)
 - packages/ide-adapters/vscode/test/manifest/manifest.test.ts
 - packages/ide-adapters/vscode/translations/natural-languages/ (as 10 pastas que o enum precisa espelhar)
-- guia-ux-acessibilidade-vscode_1.md, secoes 5.2 e 7.2 (item 8)
+- .github/workflows/ci.yml (job `vscode-build-test`: checkout do repositorio de traducoes)
+- docs/decisoes-tecnicas.md (DT-013)
 
 ## Os 10 locales e seus rotulos
 

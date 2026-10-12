@@ -1,4 +1,4 @@
-﻿# Tarefa 114 - Configuracoes navegaveis
+# Tarefa 114 - Configuracoes navegaveis
 
 ## Fase
 7 - UX, Interface e Acessibilidade (VS Code)
@@ -38,18 +38,25 @@ O `enum` **desliga a digitacao livre de um locale novo**. Como as traducoes sao 
 `babel-tcc.translationsPath` para um fork do repositorio de traducoes com um locale a mais vera um
 aviso de validacao amarelo no `settings.json` - mas **o valor ainda e aplicado**, porque o VS Code
 nao bloqueia valor fora do enum, apenas sinaliza. Cenario raro, degradacao suave, ganho grande para o
-caso comum. Aceito.
+caso comum. Aceito, e registrado como decisao arquitetural no DT-013.
 
 ### Conformidade com docs/padroes-codigo.md
-Esta tarefa e 100% manifesto e nls; nao ha codigo TypeScript novo. A unica regra que se aplica e a de
-**zero string literal na UI** (INV-04): toda descricao nova entra nos 7 `package.nls*.json`.
+Esta tarefa e 100% manifesto e nls; nao ha codigo TypeScript de producao novo. A regra que se aplica
+e a de **nenhuma string literal na UI**: toda descricao nova entra nos 7 `package.nls*.json`.
 
 ## Escopo
 - `package.json`: `enum`, `enumItemLabels` e `enumDescriptions` em `babel-tcc.language` e nas 5
   propriedades de `babel-tcc.languageOverrides`; `order` nas 5 propriedades de configuracao.
 - `package.nls.json` + 6 traducoes: as chaves de `enumDescriptions`.
-- `test/manifest/manifest.test.ts`: a assercao 8 do guia (§7.2) - o `enum` e **exatamente** o conjunto
-  de pastas em `translations/natural-languages`.
+- `test/manifest/manifest.test.ts`: o `enum` e **exatamente** o conjunto de pastas em
+  `natural-languages`, lidas de `BABEL_TCC_TRANSLATIONS_PATH`, da copia `translations/` gerada pelo
+  build ou do repositorio irmao de um checkout de desenvolvimento. Sem skip: se nenhuma fonte existe,
+  o teste falha com a instrucao de configurar a variavel.
+- `.github/workflows/ci.yml`: o job da extensao faz checkout do repositorio de traducoes e aponta
+  `BABEL_TCC_TRANSLATIONS_PATH` para ele, como o job do Core ja fazia - para o teste rodar em todo PR.
+- `docs/user-guide/configuration.md`: `babel-tcc.language` como lista, a tabela de idiomas e o caso do
+  fork com idioma a mais.
+- `docs/decisoes-tecnicas.md`: DT-013.
 
 ## Fora de escopo
 - Qualquer mudanca no codigo que le as configuracoes. `ConfigurationService` continua recebendo
@@ -61,3 +68,9 @@ Esta tarefa e 100% manifesto e nls; nao ha codigo TypeScript novo. A unica regra
 O `enum` precisa ser identico ao conjunto de pastas em `translations/natural-languages`. Se alguem
 adicionar um idioma no repositorio de traducoes e esquecer o manifesto, o teste de contrato quebra.
 E o mesmo principio do `scripts/validate.py`, agora aplicado a uma lista que mora no manifesto.
+
+## Revisao do PR #185 (2026-10-12)
+Na primeira versao o teste do enum usava `it.skipIf` e so rodava com o repositorio de traducoes ao
+lado. O job da extensao no CI nao fazia checkout dele, entao o teste era pulado no CI e em qualquer
+clone limpo - o item do DoD estava marcado como cumprido, mas nao era exercido onde importa. Agora o
+teste le `BABEL_TCC_TRANSLATIONS_PATH`, o CI fornece o repositorio e o skip saiu.
