@@ -12,7 +12,8 @@ ou devolvendo so os casos cobertos por excecao escrita em docs/padroes-codigo.md
 - [ ] Tarefa marcada como .finalizada no PR que fecha a ultima camada
 
 ## Extensao VS Code (TypeScript)
-- [ ] `src/` sem operador ternario
+- [x] `src/` sem operador ternario
+      (2026-10-12: `count_ts src "ConditionalExpression"` devolve 0; antes, 33)
 - [ ] `src/` sem `private`
 - [ ] `src/` sem `throw`: erro atravessa como valor via Result pattern
 - [ ] `src/` sem tipos anulaveis, `??` e `?.` fora da fronteira com a API do VS Code, e

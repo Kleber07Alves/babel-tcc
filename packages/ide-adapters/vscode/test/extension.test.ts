@@ -4,6 +4,8 @@ import { commands, workspace, window, languages, Uri } from './__mocks__/vscode'
 
 vi.mock('fs');
 
+import { CoreBridge } from '../src/services/coreBridge';
+import { KeywordMapService } from '../src/providers/keywordMap';
 import { activate, deactivate, buildScopeItems } from '../src/extension';
 import { SUPPORTED_LANGUAGES, buildFileWatcherPattern } from '../src/config/languages';
 
@@ -26,6 +28,9 @@ describe('extension', () => {
       update: vi.fn(),
     } as any);
     vi.mocked(window.onDidChangeActiveTextEditor).mockReturnValue({ dispose: vi.fn() });
+    // activate() warms the keyword cache, which asks the Core for the maps. Left alone that spawns a
+    // real `dotnet` process from a unit test; its exit then surfaces as an unhandled EPIPE.
+    vi.spyOn(KeywordMapService.prototype, 'warmCache').mockResolvedValue(undefined);
   });
 
   describe('activate', () => {
@@ -91,6 +96,103 @@ describe('extension', () => {
       await toggleCall![1]();
 
       expect(updateMock).toHaveBeenCalledWith('enabled', false, expect.anything());
+    });
+
+    it('toggle command should announce the new state when enabling', async () => {
+      const context = makeContext();
+      const updateMock = vi.fn();
+      vi.mocked(workspace.getConfiguration).mockReturnValue({
+        get: vi.fn((key: string, def?: unknown) => {
+          if (key === 'enabled') return false;
+          return def;
+        }),
+        update: updateMock,
+      } as any);
+
+      activate(context as any);
+      const toggleCall = vi.mocked(commands.registerCommand).mock.calls.find(c => c[0] === 'babel-tcc.toggle');
+      await toggleCall![1]();
+
+      expect(updateMock).toHaveBeenCalledWith('enabled', true, expect.anything());
+      expect(window.showInformationMessage).toHaveBeenCalledTimes(1);
+      expect(window.showInformationMessage).toHaveBeenCalledWith('Babel TCC: Translation enabled.');
+      const outputChannel = vi.mocked(window.createOutputChannel).mock.results[0].value;
+      expect(outputChannel.appendLine).toHaveBeenCalledWith('Translation enabled.');
+    });
+
+    it('toggle command should announce the new state when disabling', async () => {
+      const context = makeContext();
+      vi.mocked(workspace.getConfiguration).mockReturnValue({
+        get: vi.fn((key: string, def?: unknown) => {
+          if (key === 'enabled') return true;
+          return def;
+        }),
+        update: vi.fn(),
+      } as any);
+
+      activate(context as any);
+      const toggleCall = vi.mocked(commands.registerCommand).mock.calls.find(c => c[0] === 'babel-tcc.toggle');
+      await toggleCall![1]();
+
+      expect(window.showInformationMessage).toHaveBeenCalledTimes(1);
+      expect(window.showInformationMessage).toHaveBeenCalledWith('Babel TCC: Translation disabled.');
+      const outputChannel = vi.mocked(window.createOutputChannel).mock.results[0].value;
+      expect(outputChannel.appendLine).toHaveBeenCalledWith('Translation disabled.');
+    });
+
+    it('selectLanguage should offer the active file language and set a per-language override', async () => {
+      const context = makeContext();
+      const updateMock = vi.fn();
+      vi.mocked(workspace.getConfiguration).mockReturnValue({
+        get: vi.fn((_key: string, def?: unknown) => def),
+        update: updateMock,
+      } as any);
+      workspace.textDocuments = [];
+      // No Core process in unit tests: the command falls back to the configured language list.
+      vi.spyOn(CoreBridge.prototype, 'getSupportedLanguages').mockRejectedValue(new Error('core unavailable'));
+      window.activeTextEditor = { document: { uri: Uri.file('/project/Program.cs') } } as any;
+      vi.mocked(window.showQuickPick)
+        .mockImplementationOnce(async (items: any) =>
+          items.find((scopeItem: any) => scopeItem.scope === 'language' && scopeItem.language === 'CSharp'))
+        .mockImplementationOnce(async () => 'es-es' as any);
+
+      activate(context as any);
+      const selectCall = vi.mocked(commands.registerCommand).mock.calls.find(c => c[0] === 'babel-tcc.selectLanguage');
+      await selectCall![1]();
+
+      const offeredScopes = vi.mocked(window.showQuickPick).mock.calls[0][0] as any[];
+      const activeLabels: string[] = offeredScopes
+        .filter((scopeItem: any) => String(scopeItem.label).includes('(active)'))
+        .map((scopeItem: any) => scopeItem.language);
+      expect(activeLabels).toEqual(['CSharp']);
+      expect(updateMock).toHaveBeenCalledWith('languageOverrides', { CSharp: 'es-es' }, expect.anything());
+      expect(window.showInformationMessage).toHaveBeenCalledWith('Babel TCC: Language for CSharp set to es-es.');
+      window.activeTextEditor = undefined;
+    });
+
+    it('selectLanguage should mark no language as active and set the global language without an editor', async () => {
+      const context = makeContext();
+      const updateMock = vi.fn();
+      vi.mocked(workspace.getConfiguration).mockReturnValue({
+        get: vi.fn((_key: string, def?: unknown) => def),
+        update: updateMock,
+      } as any);
+      workspace.textDocuments = [];
+      // No Core process in unit tests: the command falls back to the configured language list.
+      vi.spyOn(CoreBridge.prototype, 'getSupportedLanguages').mockRejectedValue(new Error('core unavailable'));
+      window.activeTextEditor = undefined;
+      vi.mocked(window.showQuickPick)
+        .mockImplementationOnce(async (items: any) => items.find((scopeItem: any) => scopeItem.scope === 'global'))
+        .mockImplementationOnce(async () => 'es-es' as any);
+
+      activate(context as any);
+      const selectCall = vi.mocked(commands.registerCommand).mock.calls.find(c => c[0] === 'babel-tcc.selectLanguage');
+      await selectCall![1]();
+
+      const offeredScopes = vi.mocked(window.showQuickPick).mock.calls[0][0] as any[];
+      expect(offeredScopes.some((scopeItem: any) => String(scopeItem.label).includes('(active)'))).toBe(false);
+      expect(updateMock).toHaveBeenCalledWith('language', 'es-es', expect.anything());
+      expect(window.showInformationMessage).toHaveBeenCalledWith('Babel TCC: Language set to es-es.');
     });
 
     it('showOriginal command should warn when no active editor', async () => {

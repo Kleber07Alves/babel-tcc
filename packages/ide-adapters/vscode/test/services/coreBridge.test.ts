@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventEmitter as NodeEventEmitter } from 'events';
 import * as fs from 'fs';
+import * as path from 'path';
 import { workspace, window, Uri } from '../__mocks__/vscode';
 
 vi.mock('fs');
@@ -109,6 +110,21 @@ describe('CoreBridge', () => {
   describe('constructor', () => {
     it('should set coreDllPath based on extensionPath', () => {
       expect(bridge.coreDllPath).toContain('MultiLingualCode.Core.Host.dll');
+    });
+
+    it('should name the self-contained executable after the platform', () => {
+      const realPlatform: PropertyDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')!;
+      try {
+        Object.defineProperty(process, 'platform', { value: 'win32' });
+        const windowsBridge = new CoreBridge(makeContext() as any, makeOutputChannel() as any);
+        expect(path.basename(windowsBridge.coreExePath)).toBe('MultiLingualCode.Core.Host.exe');
+
+        Object.defineProperty(process, 'platform', { value: 'linux' });
+        const linuxBridge = new CoreBridge(makeContext() as any, makeOutputChannel() as any);
+        expect(path.basename(linuxBridge.coreExePath)).toBe('MultiLingualCode.Core.Host');
+      } finally {
+        Object.defineProperty(process, 'platform', realPlatform);
+      }
     });
 
     it('should set projectPath from workspace folders', () => {

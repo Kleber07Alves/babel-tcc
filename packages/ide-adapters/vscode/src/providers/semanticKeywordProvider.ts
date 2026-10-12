@@ -49,8 +49,14 @@ function scanLine(text: string, inBlockComment: boolean, inBlockString: boolean,
 
   for (let i = 0; i < text.length; i++) {
     const ch: string = text[i];
-    const next: string = i + 1 < text.length ? text[i + 1] : '';
-    const next2: string = i + 2 < text.length ? text[i + 2] : '';
+    let next: string = '';
+    if (i + 1 < text.length) {
+      next = text[i + 1];
+    }
+    let next2: string = '';
+    if (i + 2 < text.length) {
+      next2 = text[i + 2];
+    }
 
     if (inBlockString) {
       insideAt[i] = true;
@@ -239,7 +245,10 @@ export class SemanticKeywordProvider implements vscode.DocumentSemanticTokensPro
         if (translatedKeywords.has(lowerWord)) {
           const original: string = keywordMap[lowerWord];
           const category: string | undefined = categories[original];
-          const tokenType: number = category ? (CATEGORY_TO_TOKEN[category] ?? TOKEN_OTHER) : TOKEN_OTHER;
+          let tokenType: number = TOKEN_OTHER;
+          if (category) {
+            tokenType = CATEGORY_TO_TOKEN[category] ?? TOKEN_OTHER;
+          }
           builder.push(line, col, word.length, tokenType);
         } else if (translatedIdentifiers.has(word)) {
           builder.push(line, col, word.length, TOKEN_VARIABLE);

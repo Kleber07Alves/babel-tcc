@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { describeError } from '../services/errorMessage';
 import { ConfigurationService } from '../services/configurationService';
 import { LanguageDetector } from '../services/languageDetector';
 import { TranslatedContentProvider, TRANSLATED_SCHEME, READONLY_SCHEME, isTranslatedScheme } from './translatedContentProvider';
@@ -44,7 +45,7 @@ export class AutoTranslateManager implements vscode.Disposable {
       this.configChangeQueue = this.configChangeQueue
         .then((): Promise<void> => this.handleConfigChange())
         .catch((err: unknown): void => {
-          const message: string = err instanceof Error ? err.message : String(err);
+          const message: string = describeError(err);
           this.outputChannel.appendLine(`AutoTranslate: config change failed - ${message}`);
         });
     });
@@ -116,7 +117,7 @@ export class AutoTranslateManager implements vscode.Disposable {
         `AutoTranslate: replaced ${editor.document.uri.fsPath} with translated view`
       );
     } catch (error: unknown) {
-      const message: string = error instanceof Error ? error.message : String(error);
+      const message: string = describeError(error);
       this.outputChannel.appendLine(`AutoTranslate: failed - ${message}`);
     } finally {
       this.processingUris.delete(uriString);
@@ -159,7 +160,11 @@ export class AutoTranslateManager implements vscode.Disposable {
     } else {
       this.previousLanguageFingerprint = currentFingerprint;
       if (currentEnabled && currentReadonly !== wasReadonly) {
-        await this.switchScheme(wasReadonly ? READONLY_SCHEME : TRANSLATED_SCHEME);
+        let previousScheme: string = TRANSLATED_SCHEME;
+        if (wasReadonly) {
+          previousScheme = READONLY_SCHEME;
+        }
+        await this.switchScheme(previousScheme);
       }
     }
   }
@@ -176,8 +181,10 @@ export class AutoTranslateManager implements vscode.Disposable {
     // Only restore focus if a translated view was active; otherwise we would open a translated view
     // for an unrelated (possibly unsupported) file that just happened to be focused.
     const activeDoc: vscode.TextDocument | undefined = vscode.window.activeTextEditor?.document;
-    const activePath: string | undefined =
-      activeDoc && isTranslatedScheme(activeDoc.uri.scheme) ? activeDoc.uri.path : undefined;
+    let activePath: string | undefined = undefined;
+    if (activeDoc && isTranslatedScheme(activeDoc.uri.scheme)) {
+      activePath = activeDoc.uri.path;
+    }
 
     for (const { uri, path, viewColumn } of oldTabs) {
       try {
@@ -186,7 +193,7 @@ export class AutoTranslateManager implements vscode.Disposable {
         await vscode.window.showTextDocument(doc, { preview: false, viewColumn });
         await this.closeTab(uri);
       } catch (error: unknown) {
-        const message: string = error instanceof Error ? error.message : String(error);
+        const message: string = describeError(error);
         this.outputChannel.appendLine(`AutoTranslate: failed to switch scheme - ${message}`);
       }
     }
@@ -205,7 +212,7 @@ export class AutoTranslateManager implements vscode.Disposable {
       const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(focusUri);
       await vscode.window.showTextDocument(doc, { preview: false });
     } catch (error: unknown) {
-      const message: string = error instanceof Error ? error.message : String(error);
+      const message: string = describeError(error);
       this.outputChannel.appendLine(`AutoTranslate: failed to restore focus - ${message}`);
     }
   }
@@ -224,7 +231,7 @@ export class AutoTranslateManager implements vscode.Disposable {
         await vscode.window.showTextDocument(doc, { preview: false, viewColumn });
         await this.closeTab(uri);
       } catch (error: unknown) {
-        const message: string = error instanceof Error ? error.message : String(error);
+        const message: string = describeError(error);
         this.outputChannel.appendLine(`AutoTranslate: failed to restore original - ${message}`);
       }
     }
@@ -250,7 +257,7 @@ export class AutoTranslateManager implements vscode.Disposable {
           await vscode.window.showTextDocument(doc, { preview: false, viewColumn });
           await this.closeTab(uri);
         } catch (error: unknown) {
-          const message: string = error instanceof Error ? error.message : String(error);
+          const message: string = describeError(error);
           this.outputChannel.appendLine(`AutoTranslate: failed to translate tab - ${message}`);
         }
       }
@@ -311,7 +318,7 @@ export class AutoTranslateManager implements vscode.Disposable {
           await vscode.commands.executeCommand('workbench.action.files.revert');
         }
       } catch (error: unknown) {
-        const message: string = error instanceof Error ? error.message : String(error);
+        const message: string = describeError(error);
         this.outputChannel.appendLine(`AutoTranslate: failed to handle unsaved edits in ${doc.uri.path} - ${message}`);
       }
     }
@@ -338,8 +345,10 @@ export class AutoTranslateManager implements vscode.Disposable {
     ];
 
     const activeDoc: vscode.TextDocument | undefined = vscode.window.activeTextEditor?.document;
-    const restoreDoc: vscode.TextDocument | undefined =
-      activeDoc && isTranslatedScheme(activeDoc.uri.scheme) ? activeDoc : undefined;
+    let restoreDoc: vscode.TextDocument | undefined = undefined;
+    if (activeDoc && isTranslatedScheme(activeDoc.uri.scheme)) {
+      restoreDoc = activeDoc;
+    }
 
     const seen: Set<string> = new Set<string>();
     for (const { uri, path } of translatedTabs) {
@@ -356,7 +365,7 @@ export class AutoTranslateManager implements vscode.Disposable {
       try {
         await vscode.window.showTextDocument(restoreDoc, { preview: false });
       } catch (error: unknown) {
-        const message: string = error instanceof Error ? error.message : String(error);
+        const message: string = describeError(error);
         this.outputChannel.appendLine(`AutoTranslate: failed to restore focus after refresh - ${message}`);
       }
     }
@@ -385,7 +394,7 @@ export class AutoTranslateManager implements vscode.Disposable {
       await vscode.window.showTextDocument(doc, { preview: false });
       await vscode.commands.executeCommand('workbench.action.files.revert');
     } catch (error: unknown) {
-      const message: string = error instanceof Error ? error.message : String(error);
+      const message: string = describeError(error);
       this.outputChannel.appendLine(`AutoTranslate: failed to reload translated view ${path} - ${message}`);
     }
   }
