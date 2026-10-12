@@ -8,7 +8,6 @@ import { CoreBridge } from '../src/services/coreBridge';
 import { KeywordMapService } from '../src/providers/keywordMap';
 import { activate, deactivate, buildScopeItems } from '../src/extension';
 import { SUPPORTED_LANGUAGES, buildFileWatcherPattern } from '../src/config/languages';
-import { ContextKeyManager } from '../src/ui/contextKeys';
 
 function makeContext(): { extensionPath: string; subscriptions: { dispose(): void }[] } {
   return {
@@ -65,28 +64,18 @@ describe('extension', () => {
       expect(languages.registerHoverProvider).toHaveBeenCalledTimes(2);
     });
 
-    it('should push exactly 21 subscriptions to context', () => {
+    it('should push exactly 20 subscriptions to context', () => {
       const context = makeContext();
       activate(context as any);
-      expect(context.subscriptions.length).toBe(21);
+      expect(context.subscriptions.length).toBe(20);
     });
 
-    it('should register the context key manager for disposal', () => {
+    // Menus and keybindings read only built-in keys (resourceExtname, resourceScheme, config.*), which
+    // VS Code evaluates per editor group; a key published by the extension would be global (DT-012).
+    it('should not publish any context key', () => {
       const context = makeContext();
       activate(context as any);
-      const managers = context.subscriptions.filter((s) => s instanceof ContextKeyManager);
-      expect(managers.length).toBe(1);
-    });
-
-    it('should publish the four context keys on activation', () => {
-      const context = makeContext();
-      activate(context as any);
-      expect(Object.keys(__getContextKeys()).sort()).toEqual([
-        'babelTcc.enabled',
-        'babelTcc.readonlyView',
-        'babelTcc.supportedFile',
-        'babelTcc.translatedView',
-      ]);
+      expect(__getContextKeys()).toEqual({});
     });
 
     it('should create file watcher covering all supported extensions', () => {

@@ -84,29 +84,29 @@
       "editor/title": [
         {
           "command": "babel-tcc.openTranslatedEditable",
-          "when": "babelTcc.enabled && babelTcc.supportedFile && !babelTcc.translatedView",
+          "when": "config.babel-tcc.enabled && resourceExtname =~ /^\\.(cs|py|alg|por|js)$/i && resourceScheme != 'babel-tcc-translated' && resourceScheme != 'babel-tcc-readonly'",
           "group": "navigation@1"
         },
         {
           "command": "babel-tcc.showOriginal",
-          "when": "babelTcc.translatedView",
+          "when": "resourceScheme =~ /^(babel-tcc-translated|babel-tcc-readonly)$/",
           "group": "navigation@1"
         }
       ],
       "editor/context": [
         {
           "command": "babel-tcc.openTranslatedEditable",
-          "when": "babelTcc.enabled && babelTcc.supportedFile && !babelTcc.translatedView",
+          "when": "config.babel-tcc.enabled && resourceExtname =~ /^\\.(cs|py|alg|por|js)$/i && resourceScheme != 'babel-tcc-translated' && resourceScheme != 'babel-tcc-readonly'",
           "group": "babel-tcc@1"
         },
         {
           "command": "babel-tcc.openTranslatedReadonly",
-          "when": "babelTcc.enabled && babelTcc.supportedFile && !babelTcc.translatedView",
+          "when": "config.babel-tcc.enabled && resourceExtname =~ /^\\.(cs|py|alg|por|js)$/i && resourceScheme != 'babel-tcc-translated' && resourceScheme != 'babel-tcc-readonly'",
           "group": "babel-tcc@2"
         },
         {
           "command": "babel-tcc.showOriginal",
-          "when": "babelTcc.translatedView",
+          "when": "resourceScheme =~ /^(babel-tcc-translated|babel-tcc-readonly)$/",
           "group": "babel-tcc@1"
         }
       ]
@@ -114,25 +114,25 @@
     "keybindings": [
       {
         "command": "babel-tcc.toggle",
-        "key": "ctrl+alt+b t",
-        "mac": "cmd+alt+b t"
+        "key": "ctrl+alt+u t",
+        "mac": "cmd+alt+u t"
       },
       {
         "command": "babel-tcc.selectLanguage",
-        "key": "ctrl+alt+b i",
-        "mac": "cmd+alt+b i"
+        "key": "ctrl+alt+u i",
+        "mac": "cmd+alt+u i"
       },
       {
         "command": "babel-tcc.openTranslatedEditable",
-        "key": "ctrl+alt+b v",
-        "mac": "cmd+alt+b v",
-        "when": "editorTextFocus && babelTcc.enabled && babelTcc.supportedFile && !babelTcc.translatedView"
+        "key": "ctrl+alt+u v",
+        "mac": "cmd+alt+u v",
+        "when": "editorTextFocus && config.babel-tcc.enabled && resourceExtname =~ /^\\.(cs|py|alg|por|js)$/i && resourceScheme != 'babel-tcc-translated' && resourceScheme != 'babel-tcc-readonly'"
       },
       {
         "command": "babel-tcc.showOriginal",
-        "key": "ctrl+alt+b o",
-        "mac": "cmd+alt+b o",
-        "when": "editorTextFocus && babelTcc.translatedView"
+        "key": "ctrl+alt+u o",
+        "mac": "cmd+alt+u o",
+        "when": "editorTextFocus && resourceScheme =~ /^(babel-tcc-translated|babel-tcc-readonly)$/"
       }
     ],
     "configuration": {

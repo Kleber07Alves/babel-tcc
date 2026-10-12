@@ -10,7 +10,6 @@ import { CompletionProvider } from './providers/completionProvider';
 import { HoverProvider } from './providers/hoverProvider';
 import { KeywordMapService } from './providers/keywordMap';
 import { StatusBar } from './ui/statusBar';
-import { ContextKeyManager } from './ui/contextKeys';
 import { AutoTranslateManager } from './providers/autoTranslateManager';
 import { SemanticKeywordProvider, SEMANTIC_TOKENS_LEGEND } from './providers/semanticKeywordProvider';
 import { buildFileWatcherPattern, SUPPORTED_LANGUAGES } from './config/languages';
@@ -51,7 +50,6 @@ let languageDetector: LanguageDetector;
 let configService: ConfigurationService;
 let translatedContentProvider: TranslatedContentProvider;
 let statusBar: StatusBar;
-let contextKeyManager: ContextKeyManager;
 let autoTranslateManager: AutoTranslateManager;
 let keywordMapService: KeywordMapService;
 
@@ -128,9 +126,6 @@ export function activate(context: vscode.ExtensionContext): void {
     coreBridge, languageDetector, configService, outputChannel
   );
   statusBar = new StatusBar(configService, languageDetector);
-  // Publishes the babelTcc.* context keys that the `when` clauses of menus and keybindings read,
-  // so UI visibility is decided declaratively in the manifest instead of inside each command (DT-012).
-  contextKeyManager = ContextKeyManager.create(configService, languageDetector);
   autoTranslateManager = new AutoTranslateManager(
     configService, languageDetector, translatedContentProvider, outputChannel
   );
@@ -385,7 +380,6 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(configService);
   context.subscriptions.push(keywordMapService);
   context.subscriptions.push(statusBar);
-  context.subscriptions.push(contextKeyManager);
   context.subscriptions.push(autoTranslateManager);
   context.subscriptions.push(toggleCommand);
   context.subscriptions.push(selectLanguageCommand);

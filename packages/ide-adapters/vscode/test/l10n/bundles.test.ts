@@ -5,7 +5,8 @@ import * as path from 'path';
 /**
  * Contract test between the `vscode.l10n.t()` calls in src/ and the runtime translation bundles.
  * A string added to the code without an entry in every bundle silently falls back to English for
- * that locale, which is a regression against INV-04 rather than a detail to fix later.
+ * that locale, which is a regression against the no-literal-string rule of the UI rather than a
+ * detail to fix later.
  *
  * The extraction is static, so it imposes the same convention the official vscode-l10n-dev tool
  * imposes: the literal passed to `l10n.t()` stays on a single line, in single quotes, and is never
@@ -67,7 +68,7 @@ describe('l10n bundle contract', () => {
     expect(translatedMessages).toContain('Babel TCC: No active editor.');
   });
 
-  it('should translate every message in all 6 bundles (INV-04)', () => {
+  it('should translate every message in all 6 bundles', () => {
     for (const filename of BUNDLE_FILENAMES) {
       const bundleKeys: string[] = Object.keys(readBundle(filename));
       const missing: string[] = translatedMessages.filter(
