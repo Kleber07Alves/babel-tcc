@@ -88,7 +88,12 @@ public class Program
         CoreResponse coreResponse = await RouteRequest(method, paramsJson, registry, translationsPath, projectPath, cache);
         string json = JsonSerializer.Serialize(coreResponse, JsonOptions);
         Console.WriteLine(json);
-        return coreResponse.Success ? 0 : 1;
+        if (coreResponse.Success)
+        {
+            return 0;
+        }
+
+        return 1;
     }
 
     /// <summary>
@@ -98,9 +103,9 @@ public class Program
     {
         LanguageRegistry registry = CreateRegistry();
         Dictionary<string, TranslationOrchestrator> orchestratorCache = new();
-        string? line;
 
-        while ((line = Console.ReadLine()) != null)
+        // Console.ReadLine signals end of input with null; the pattern keeps that inside the loop condition.
+        while (Console.ReadLine() is string line)
         {
             if (string.IsNullOrWhiteSpace(line))
             {
@@ -114,16 +119,18 @@ public class Program
                 using JsonDocument doc = JsonDocument.Parse(line);
                 JsonElement root = doc.RootElement;
 
-                string requestMethod = root.GetProperty("method").GetString() ?? "";
+                string requestMethod = ReadStringOrEmpty(root.GetProperty("method"));
 
                 if (requestMethod == "quit")
                 {
                     break;
                 }
 
-                string requestParams = root.TryGetProperty("params", out JsonElement paramsElement)
-                    ? paramsElement.GetRawText()
-                    : "{}";
+                string requestParams = "{}";
+                if (root.TryGetProperty("params", out JsonElement paramsElement))
+                {
+                    requestParams = paramsElement.GetRawText();
+                }
 
                 response = await RouteRequest(requestMethod, requestParams, registry, translationsPath, projectPath, orchestratorCache);
             }
@@ -257,14 +264,17 @@ public class Program
             using JsonDocument doc = JsonDocument.Parse(paramsJson);
             JsonElement root = doc.RootElement;
 
-            string propertyName = method == "TranslateToNaturalLanguage"
+            string propertyName = "sourceLanguage";
+            if (method == "TranslateToNaturalLanguage"
                 || method == "GetKeywordMap"
-                || method == "GetIdentifierMap"
-                ? "targetLanguage" : "sourceLanguage";
+                || method == "GetIdentifierMap")
+            {
+                propertyName = "targetLanguage";
+            }
 
             if (root.TryGetProperty(propertyName, out JsonElement langElement))
             {
-                string languageCode = langElement.GetString() ?? "";
+                string languageCode = ReadStringOrEmpty(langElement);
                 if (!string.IsNullOrEmpty(languageCode))
                 {
                     return OperationResultGeneric<string>.Ok(languageCode);
@@ -280,15 +290,28 @@ public class Program
     }
 
     /// <summary>
+    /// Reads a JSON string value, mapping a JSON null to an empty string.
+    /// </summary>
+    public static string ReadStringOrEmpty(JsonElement element)
+    {
+        if (element.GetString() is string text)
+        {
+            return text;
+        }
+
+        return "";
+    }
+
+    /// <summary>
     /// Returns a cached orchestrator for the given language, or creates and caches a new one.
     /// </summary>
     public static TranslationOrchestrator GetOrCreateOrchestrator(
         Dictionary<string, TranslationOrchestrator> cache, string languageCode,
         string translationsPath, string projectPath)
     {
-        if (cache.TryGetValue(languageCode, out TranslationOrchestrator? cached))
+        if (cache.ContainsKey(languageCode))
         {
-            return cached;
+            return cache[languageCode];
         }
 
         TranslationOrchestrator orchestrator = CreateOrchestrator(languageCode, translationsPath, projectPath);
@@ -411,10 +434,13 @@ public class Program
         foreach (KeyValuePair<string, Dictionary<string, string>> kvp in mapper.Data.Identifiers)
         {
             string originalName = kvp.Key;
-            if (kvp.Value.TryGetValue(request.TargetLanguage, out string? translatedName)
-                && !string.IsNullOrEmpty(translatedName))
+            if (kvp.Value.ContainsKey(request.TargetLanguage))
             {
-                reversedMap[translatedName] = originalName;
+                string translatedName = kvp.Value[request.TargetLanguage];
+                if (!string.IsNullOrEmpty(translatedName))
+                {
+                    reversedMap[translatedName] = originalName;
+                }
             }
         }
 

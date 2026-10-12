@@ -26,8 +26,13 @@ ou devolvendo so os casos cobertos por excecao escrita em docs/padroes-codigo.md
 - [ ] `npx vitest run`, `npm run lint` e `npm run build` passam
 
 ## Core C#
-- [ ] Producao sem operador ternario
-- [ ] Testes sem operador ternario, inclusive `OptimizationResearchTests.cs`
+- [x] Producao sem operador ternario
+      (2026-10-12: `count_cs` de ternario em $PROD devolve 0; contagem pela arvore
+      sintatica tambem 0)
+- [x] Testes sem operador ternario, inclusive `OptimizationResearchTests.cs`
+      (2026-10-12: arvore sintatica devolve 0; `count_cs` em $TESTS devolve 1, o falso
+      positivo ja documentado - um ternario dentro de string literal usada como entrada
+      de teste, em `OptimizationResearchTests.cs`)
 - [ ] Producao sem tipos anulaveis, `??` e `!` de supressao de nulo
 - [ ] Sobrecargas de `OperationResult.Ok`, `OperationResult.Fail` e
       `TextScanTranslator.Translate` trocadas por nomes distintos
