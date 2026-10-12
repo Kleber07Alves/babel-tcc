@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   title bar opens the translated view of a supported file, and turns into "show original" once you
   are in that view; the editor context menu offers the editable view, the read-only view and the way
   back. Every one of these surfaces declares when it applies, so an action that does not fit the file
-  you are on is not shown at all instead of being shown and then refused.
-- **Keyboard shortcuts, as a chord starting with `Ctrl+Alt+B` (`Cmd+Alt+B` on macOS):** `T` toggles
+  you are on is not shown at all instead of being shown and then refused. With the editor split, each
+  title bar answers for its own file: the group showing a `README.md` offers nothing, even while the
+  active group holds a translated view.
+- **Keyboard shortcuts, as a chord starting with `Ctrl+Alt+U` (`Cmd+Alt+U` on macOS):** `T` toggles
   translation, `I` picks the target language, `V` opens the translated view and `O` goes back to the
-  original. The prefix was checked on a real ABNT2 keyboard: on Windows `AltGr` reaches applications
-  as `Ctrl+Alt`, so a shortcut on the wrong key would fire while you were simply typing a character.
+  original. The prefix is free in VS Code's default shortcuts, so installing the extension takes no
+  built-in shortcut away, and it stays clear of the keys the Brazilian ABNT2 layout reaches through
+  `AltGr`: on Windows `AltGr` reaches applications as `Ctrl+Alt`, so a shortcut on the wrong key
+  would fire while you were simply typing a character.
 
 ### Changed
 
