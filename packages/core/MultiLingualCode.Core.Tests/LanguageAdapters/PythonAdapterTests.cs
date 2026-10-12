@@ -280,11 +280,24 @@ public class PythonAdapterTests : IDisposable
         Assert.Contains("pass", result);
     }
 
+    /// <summary>
+    /// Keyword lookup that knows a single translated keyword, "definir" (id 11).
+    /// </summary>
+    public static int LookupDefinirKeywordId(string word)
+    {
+        if (word == "definir")
+        {
+            return 11;
+        }
+
+        return -1;
+    }
+
     [RequiresPythonFact]
     public void ReverseSubstituteKeywords_WithSingleQuoteString_PreservesContent()
     {
         string code = "x = 'definir'";
-        Func<string, int> lookup = (string word) => word == "definir" ? 11 : -1;
+        Func<string, int> lookup = LookupDefinirKeywordId;
 
         string result = Adapter.ReverseSubstituteKeywords(code, lookup);
         Assert.Contains("'definir'", result);
@@ -294,7 +307,7 @@ public class PythonAdapterTests : IDisposable
     public void ReverseSubstituteKeywords_WithDoubleQuoteString_PreservesContent()
     {
         string code = "x = \"definir\"";
-        Func<string, int> lookup = (string word) => word == "definir" ? 11 : -1;
+        Func<string, int> lookup = LookupDefinirKeywordId;
 
         string result = Adapter.ReverseSubstituteKeywords(code, lookup);
         Assert.Contains("\"definir\"", result);
@@ -304,7 +317,7 @@ public class PythonAdapterTests : IDisposable
     public void ReverseSubstituteKeywords_WithTripleQuoteString_PreservesContent()
     {
         string code = "x = \"\"\"definir\"\"\"";
-        Func<string, int> lookup = (string word) => word == "definir" ? 11 : -1;
+        Func<string, int> lookup = LookupDefinirKeywordId;
 
         string result = Adapter.ReverseSubstituteKeywords(code, lookup);
         Assert.Contains("\"\"\"definir\"\"\"", result);
@@ -314,7 +327,7 @@ public class PythonAdapterTests : IDisposable
     public void ReverseSubstituteKeywords_WithFString_PreservesContent()
     {
         string code = "x = f\"definir {y}\"";
-        Func<string, int> lookup = (string word) => word == "definir" ? 11 : -1;
+        Func<string, int> lookup = LookupDefinirKeywordId;
 
         string result = Adapter.ReverseSubstituteKeywords(code, lookup);
         Assert.Contains("f\"definir", result);

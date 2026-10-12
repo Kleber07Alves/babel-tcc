@@ -22,18 +22,26 @@ public class RequiresPythonFactAttribute : FactAttribute
     public static bool CheckPythonAvailable()
     {
         string envPython = Environment.GetEnvironmentVariable("BABEL_TCC_PYTHON") + "";
-        string[] candidates = envPython.Length > 0
-            ? new[] { envPython, "python3", "python", "py" }
-            : new[] { "python3", "python", "py" };
+        List<string> candidates = new() { "python3", "python", "py" };
+        if (envPython.Length > 0)
+        {
+            candidates.Insert(0, envPython);
+        }
 
         foreach (string candidate in candidates)
         {
             try
             {
+                string versionArguments = "--version";
+                if (candidate == "py")
+                {
+                    versionArguments = "-3 --version";
+                }
+
                 ProcessStartInfo startInfo = new()
                 {
                     FileName = candidate,
-                    Arguments = candidate == "py" ? "-3 --version" : "--version",
+                    Arguments = versionArguments,
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
