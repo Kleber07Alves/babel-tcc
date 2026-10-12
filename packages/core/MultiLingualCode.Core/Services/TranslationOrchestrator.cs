@@ -295,9 +295,11 @@ public class TranslationOrchestrator
 
         foreach (TraduAnnotation annotation in annotations)
         {
-            string lang = !string.IsNullOrEmpty(annotation.TargetLanguage)
-                ? annotation.TargetLanguage
-                : targetLanguage;
+            string lang = targetLanguage;
+            if (!string.IsNullOrEmpty(annotation.TargetLanguage))
+            {
+                lang = annotation.TargetLanguage;
+            }
 
             if (annotation.IsLiteralAnnotation)
             {
@@ -339,9 +341,11 @@ public class TranslationOrchestrator
 
         foreach (TraduAnnotation annotation in annotations)
         {
-            string lang = !string.IsNullOrEmpty(annotation.TargetLanguage)
-                ? annotation.TargetLanguage
-                : sourceLanguage;
+            string lang = sourceLanguage;
+            if (!string.IsNullOrEmpty(annotation.TargetLanguage))
+            {
+                lang = annotation.TargetLanguage;
+            }
 
             if (lang != sourceLanguage)
             {
@@ -420,7 +424,11 @@ public class TranslationOrchestrator
         string normalizedEdited = editedTranslatedCode.Replace("\r\n", "\n");
 
         // Preserve original line ending style for output
-        string lineEnding = originalCode.Contains("\r\n") ? "\r\n" : "\n";
+        string lineEnding = "\n";
+        if (originalCode.Contains("\r\n"))
+        {
+            lineEnding = "\r\n";
+        }
 
         string[] originalLines = normalizedOriginal.Split('\n');
         string[] previousLines = normalizedPrevious.Split('\n');
@@ -453,7 +461,12 @@ public class TranslationOrchestrator
 
                 case DiffOpType.Modified:
                     // Line modified — token-level diff
-                    string origLine = originalIdx < originalLines.Length ? originalLines[originalIdx] : "";
+                    string origLine = "";
+                    if (originalIdx < originalLines.Length)
+                    {
+                        origLine = originalLines[originalIdx];
+                    }
+
                     resultLines.Add(ReverseTranslateLineWithDiff(origLine, op.PreviousLine, op.EditedLine));
                     originalIdx++;
                     break;

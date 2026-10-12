@@ -142,9 +142,9 @@ public class TextScanTranslator
 
                 bool isEscapedIdentifier = rules.HasEscapedIdentifiers && start > 0 && code[start - 1] == '@';
 
-                if (!isEscapedIdentifier && translations.TryGetValue(word, out string? translated))
+                if (!isEscapedIdentifier && translations.ContainsKey(word))
                 {
-                    result.Append(translated);
+                    result.Append(translations[word]);
                 }
                 else
                 {
