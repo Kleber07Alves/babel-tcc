@@ -4,10 +4,10 @@ import { commands, workspace, window, languages, Uri } from './__mocks__/vscode'
 
 vi.mock('fs');
 
-import { activate, deactivate, buildScopeItems } from '../src/extension';
-import { SUPPORTED_LANGUAGES, buildFileWatcherPattern } from '../src/config/languages';
 import { CoreBridge } from '../src/services/coreBridge';
 import { KeywordMapService } from '../src/providers/keywordMap';
+import { activate, deactivate, buildScopeItems } from '../src/extension';
+import { SUPPORTED_LANGUAGES, buildFileWatcherPattern } from '../src/config/languages';
 
 function makeContext(): { extensionPath: string; subscriptions: { dispose(): void }[] } {
   return {
